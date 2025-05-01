@@ -1,0 +1,305 @@
+<?php
+session_start();
+
+// Generate CSRF token if it doesn't exist
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inscription | StartUp Connect</title>
+    <style>
+        :root {
+            --primary-color: #06A3DA;
+            --secondary-color: #f8f9fa;
+            --text-color: #000000;
+            --error-color: #dc3545;
+            --success-color: #28a745;
+        }
+
+        body.background {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            margin: 1rem;
+        }
+
+        .login-container h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(6, 163, 218, 0.1);
+        }
+
+        .password-strength {
+            height: 4px;
+            margin-top: 0.5rem;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .password-strength.weak {
+            background: var(--error-color);
+            width: 33%;
+        }
+
+        .password-strength.medium {
+            background: #ffc107;
+            width: 66%;
+        }
+
+        .password-strength.strong {
+            background: var(--success-color);
+            width: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background: #0594c4;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .form-text {
+            display: block;
+            margin-top: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        .invalid-feedback {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .valid-feedback {
+            color: var(--success-color);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .alert {
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+                margin: 0.5rem;
+            }
+            
+            .login-container h2 {
+                font-size: 1.5rem;
+            }
+            
+            .form-group input {
+                padding: 0.7rem;
+            }
+            
+            .btn {
+                padding: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body class="background">
+    <!-- Formulaire d'Inscription -->
+    <div class="login-container">
+        <h2>Créer un compte</h2>
+        
+        <div id="messageContainer"></div>
+
+        <form id="signupForm" action="../../Controller/UserController.php" method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+           
+            <input type="hidden" name="role_id" value="1">
+
+            <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom"
+                       pattern="[A-Za-zÀ-ÿ\s]{2,50}" 
+                       title="2-50 caractères alphabétiques" 
+                       placeholder="Votre nom" required>
+            </div>
+
+            <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prénom" name="prénom"
+                       pattern="[A-Za-zÀ-ÿ\s]{2,50}"
+                       title="2-50 caractères alphabétiques"
+                       placeholder="Votre prénom" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" 
+                       placeholder="exemple@domaine.com" 
+                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" 
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="motdepasse"
+                       pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                       title="8+ caractères avec majuscule, minuscule et chiffre"
+                       placeholder="••••••••" required>
+                <div class="password-strength"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirmation</label>
+                <input type="password" id="confirm_password" 
+                       placeholder="••••••••" required>
+                <small id="passwordHelp" class="form-text"></small>
+            </div>
+
+            <button type="submit" class="btn" name="signup">S'inscrire</button>
+
+            <p class="register-link">
+                Déjà inscrit ? <a href="login.php">Se connecter</a>
+            </p>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const confirmInput = document.getElementById('confirm_password');
+            const strengthIndicator = document.querySelector('.password-strength');
+            const form = document.getElementById('signupForm');
+            const messageContainer = document.getElementById('messageContainer');
+
+            passwordInput.addEventListener('input', function(e) {
+                const strength = calculatePasswordStrength(e.target.value);
+                strengthIndicator.className = 'password-strength ' + strength;
+            });
+
+            confirmInput.addEventListener('input', function(e) {
+                const match = passwordInput.value === e.target.value;
+                const helpText = document.getElementById('passwordHelp');
+                
+                if(!match) {
+                    e.target.setCustomValidity("Les mots de passe ne correspondent pas");
+                    helpText.textContent = "Les mots de passe ne correspondent pas";
+                    helpText.style.color = "var(--error-color)";
+                } else {
+                    e.target.setCustomValidity("");
+                    helpText.textContent = "";
+                }
+            });
+
+            form.addEventListener('submit', function(e) {
+                if(passwordInput.value !== confirmInput.value) {
+                    e.preventDefault();
+                    showMessage('Les mots de passe ne correspondent pas', 'error');
+                }
+            });
+
+            function calculatePasswordStrength(password) {
+                const strength = password.length > 10 ? 3 : 
+                               password.length > 7 ? 2 : 1;
+                return ['weak', 'medium', 'strong'][strength - 1];
+            }
+
+            function showMessage(text, type) {
+                messageContainer.innerHTML = `
+                    <div class="alert alert-${type}">
+                        ${text}
+                    </div>
+                `;
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>
