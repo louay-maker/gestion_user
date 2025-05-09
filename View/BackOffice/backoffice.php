@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         elseif ($action === 'update') {
             $data = [
-                'Nom'     => $_POST['Nom'],
+                'Nom'     => $_POST[ 'Nom'],
                 'Prenom'  => $_POST['Prenom'],
                 'Email'   => $_POST['Email'],
                 'Role_ID' => $_POST['Role_ID'],

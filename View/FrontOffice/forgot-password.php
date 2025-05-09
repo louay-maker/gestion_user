@@ -15,13 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($response_data['success'] ?? false) {
         // reCAPTCHA verification successful
-        if ($controller->processForgotPassword($email)) {
-            echo "<script>alert('Password reset instructions sent to your email');</script>";
+        if ($controller->forgotPassword($email)) {
+            echo "<script>alert('Instructions de réinitialisation envoyées à votre email');</script>";
         } else {
-            echo "<script>alert('Email not found');</script>";
+            echo "<script>alert('Email non trouvé ou problème d\'envoi');</script>";
         }
     } else {
-        echo "<script>alert('Captcha verification failed');</script>";
+        echo "<script>alert('Vérification du captcha échouée');</script>";
     }
 }
 ?>

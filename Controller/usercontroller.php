@@ -1,7 +1,7 @@
 <?php
-require_once dirname(__DIR__) . "/config.php";
-require_once dirname(__DIR__) . "/Model/Model.php";
-require_once dirname(__DIR__) . '/vendor/autoload.php';
+require_once "C:/xampp/htdocs/projet/config.php";
+require_once "C:/xampp/htdocs/projet/Model/Model.php"; 
+require_once "C:/xampp/htdocs/projet/vendor/autoload.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -139,39 +139,70 @@ class FunctionsController {
 
     // Password Recovery
     public function forgotPassword($email) {
+        // Vérifier si l'email existe
+        $user = $this->model->fetchUserByEmail($email);
+        if (!$user) {
+            return false;
+        }
         $token = bin2hex(random_bytes(50));
         $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
-
         $query = "UPDATE utilisateur SET reset_token = :token, reset_expiry = :expiry WHERE Email = :email";
         $result = $this->model->executeQuery($query, [
             ':token' => $token,
             ':expiry' => $expiry,
             ':email' => $email
         ]);
-
         if ($result > 0) {
-            $resetLink = "http://yourdomain.com/reset-password.php?token=$token";
+            // Construire le lien de réinitialisation avec l'URL de ton site
+            $resetLink = "http://" . $_SERVER['HTTP_HOST'] . "/projet/View/FrontOffice/reset-password.php?token=" . $token;
             
             $mail = new PHPMailer(true);
             try {
+                // Configuration du serveur SMTP
                 $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com';
+                $mail->Host = 'smtp.gmail.com';             // Utilise Gmail comme exemple
                 $mail->SMTPAuth = true;
-                $mail->Username = 'your@email.com';
-                $mail->Password = 'your_app_password';
+                $mail->Username = 'ton-email@gmail.com';    // Ton adresse Gmail
+                $mail->Password = 'ton-mot-de-passe-app';   // Mot de passe d'application Gmail
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
-
-                $mail->setFrom('your@email.com', 'Your System');
+                
+                // Si tu utilises Gmail, active ceci pour déboguer
+                //$mail->SMTPDebug = 2;
+                
+                // Destinataires
+                $mail->setFrom('ton-email@gmail.com', 'StartUp Connect');
                 $mail->addAddress($email);
+                
+                // Contenu de l'email
                 $mail->isHTML(true);
-                $mail->Subject = 'Password Reset Request';
-                $mail->Body = "Click to reset: <a href='$resetLink'>$resetLink</a>";
+                $mail->Subject = 'Réinitialisation de votre mot de passe';
+                $mail->Body = "
+                    <html>
+                    <body>
+                        <h2>Réinitialisation de votre mot de passe</h2>
+                        <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
+                        <p>Cliquez sur le lien ci-dessous pour définir un nouveau mot de passe :</p>
+                        <p><a href='$resetLink'>Réinitialiser mon mot de passe</a></p>
+                        <p>Ce lien expirera dans 1 heure.</p>
+                        <p>Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.</p>
+                        <br>
+                        <p>Cordialement,<br>L'équipe StartUp Connect</p>
+                    </body>
+                    </html>
+                ";
+                $mail->AltBody = "Réinitialisation de votre mot de passe\n\n
+                    Vous avez demandé à réinitialiser votre mot de passe.\n
+                    Copiez et collez le lien suivant dans votre navigateur pour définir un nouveau mot de passe :\n
+                    $resetLink\n\n
+                    Ce lien expirera dans 1 heure.\n
+                    Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.\n\n
+                    Cordialement,\nL'équipe StartUp Connect";
                 
                 $mail->send();
                 return true;
             } catch (Exception $e) {
-                error_log("Mail Error: " . $mail->ErrorInfo);
+                error_log("Erreur d'envoi d'email: " . $mail->ErrorInfo);
                 return false;
             }
         }
